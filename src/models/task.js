@@ -25,7 +25,6 @@ const taskSchema = mongoose.Schema( {
 })
 
 taskSchema.pre('save', async function(next) {
-    console.log("Task Written to DB")
     next()
 })
 

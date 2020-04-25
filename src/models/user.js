@@ -61,11 +61,15 @@ userSchema.virtual('taskList', {
 })
 
 //INSTANCE METHODS (SINGLE INSTANCE ONLY)
-userSchema.methods.generateAuthToken = async function() {
+userSchema.methods.generateAuthToken = async function(resp, user) {
     const token = jwt.sign({_id: this._id.toString()}, process.env.HASH_SECRET)
     this.tokens = this.tokens.concat({token})
-    this.save()
-    return token
+    this.save((err)=>{
+        if (err) return resp.status(400).send({error: err.errmsg})
+        if (user)
+            return resp.send({user, token})
+        return resp.status(201).send({status: "New User Received", token: token, _id: this._id})
+    })
 }
 
 userSchema.methods.toJSON = function() {

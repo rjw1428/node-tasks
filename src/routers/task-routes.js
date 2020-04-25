@@ -50,10 +50,10 @@ router.get('/tasks', auth, async (req, resp) =>{
 })
 
 // GET TASKS BY ID
-router.get('/tasks/:id', auth, async (req, resp) =>{
+router.get('/tasks/:id', async (req, resp) =>{
     const _id = req.params.id
     try {
-        const task = await Task.findOne({_id, owner: req.user._id})
+        const task = await Task.findOne({_id})
         if (!task) return resp.status(404).send()
         resp.send(task)
     } catch (e) {
@@ -85,8 +85,10 @@ router.patch('/tasks/:id', auth, async (req, resp) =>{
 //REMOVE TASK BY ID
 router.delete('/tasks/:id', auth, async (req, resp) => {
     try {
-        const task = await Task.findOneAndDelete({_id: req.params.id, owner: req.user._id})
-        if (!task) resp.send("Task already removed")
+        const task = await Task.findOne({_id: req.params.id, owner: req.user._id})
+        if (!task && task.owner != req.user._id) return resp.status(401).send()
+        if (!task) return resp.send("Task already removed")
+        task.remove()
         const result = await Task.countDocuments({isComplete: false, owner: req.user._id})
         resp.send("Remaining Active Tasks: "+result)
     } catch(e) {
